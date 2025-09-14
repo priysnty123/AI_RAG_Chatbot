@@ -49,7 +49,6 @@ def create_chunks(documents, source_name):
 #     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 import os
-
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 try:
@@ -58,27 +57,23 @@ try:
 except ImportError:
     OLLAMA_AVAILABLE = False
 
+# Define the model name here (so it's available to the function)
+ollama_model_name = "deepseek-r1:1.5b"
 
 def get_embedding_model():
-    """
-    Returns an embedding model depending on environment:
-    - If Ollama is available locally, use Ollama embeddings.
-    - Otherwise, default to HuggingFace embeddings (free, cloud-safe).
-    """
-    # Check if running in Streamlit Cloud (no Ollama there)
-    if "STREAMLIT_RUNTIME" in os.environ:
-        print(" Using HuggingFace embeddings (Streamlit Cloud)")
+    """Choose embeddings depending on environment (Cloud vs Local)."""
+    running_in_cloud = os.environ.get("STREAMLIT_RUNTIME", "false").lower() == "true"
+
+    if running_in_cloud:
+        # Always HuggingFace on Streamlit Cloud
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-    # If Ollama is available locally, use it
     if OLLAMA_AVAILABLE:
-        print(" Using Ollama embeddings (local)")
-        return OllamaEmbeddings(model=ollama_model_name)  # or your `ollama_model_name`
+        # Use Ollama locally if available
+        return OllamaEmbeddings(model=ollama_model_name)
 
-    # Final fallback: HuggingFace
-    print(" Falling back to HuggingFace embeddings")
+    # Fallback
     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
 
 #Step 4: Index Documents **Store embeddings in FAISS (vector store)
 def build_faiss_index(uploaded_files):

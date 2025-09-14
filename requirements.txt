@@ -2,7 +2,6 @@ streamlit
 langchain
 langchain-community
 langchain-groq
-langchain-ollama
 python-dotenv
 requests
 faiss-cpu

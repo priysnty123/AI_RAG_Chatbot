@@ -45,34 +45,19 @@ def create_chunks(documents, source_name):
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
 def get_embedding_model():
-    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-# import os
-# from langchain_community.embeddings import HuggingFaceEmbeddings
+    # Force HuggingFace to run on CPU
+    model_kwargs = {'device': 'cpu'}
+    encode_kwargs = {'normalize_embeddings': True}
 
-# # Try importing Ollama locally only
-# try:
-#     from langchain_ollama import OllamaEmbeddings
-#     OLLAMA_AVAILABLE = True
-# except ImportError:
-#     OLLAMA_AVAILABLE = False
+    return HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs=model_kwargs,
+        encode_kwargs=encode_kwargs
+    )
 
-# ollama_model_name = "deepseek-r1:1.5b"
-
-# def get_embedding_model():
-#     """Force HuggingFace in Streamlit Cloud, use Ollama only locally."""
-#     running_in_streamlit_cloud = os.environ.get("STREAMLIT_SERVER_HEADLESS") == "1"
-
-#     if running_in_streamlit_cloud:
-#         print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings")
-#         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-#     if OLLAMA_AVAILABLE:
-#         print("💻 Running locally → Using Ollama embeddings")
-#         return OllamaEmbeddings(model=ollama_model_name)
-
-#     print("Fallback → Using HuggingFace embeddings")
-#     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 #Step 4: Index Documents **Store embeddings in FAISS (vector store)
 def build_faiss_index(uploaded_files):

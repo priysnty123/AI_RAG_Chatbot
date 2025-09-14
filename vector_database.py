@@ -54,18 +54,18 @@ import os
 ollama_model_name = "nomic-embed-text"
 
 def get_embedding_model():
-    """Choose embeddings depending on environment (Cloud vs Local)."""
-    running_in_cloud = os.environ.get("STREAMLIT_RUNTIME", "false").lower() == "true"
+    """Force HuggingFace on Streamlit Cloud, use Ollama only locally."""
+    running_in_streamlit_cloud = os.environ.get("STREAMLIT_SERVER_HEADLESS") == "1"
 
-    if running_in_cloud:
-        # Force HuggingFace on Streamlit Cloud
+    if running_in_streamlit_cloud:
+        print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings")
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     try:
-        # Try Ollama locally if available
+        print("💻 Running locally → Trying Ollama embeddings")
         return OllamaEmbeddings(model=ollama_model_name)
-    except Exception:
-        # Fallback to HuggingFace
+    except Exception as e:
+        print(f"Ollama not available, falling back: {e}")
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 

@@ -4,8 +4,13 @@ from vector_database import load_faiss_index
 from langchain_core.prompts import ChatPromptTemplate
 
 #step 1 llm setup 
-llm_model = ChatGroq(model="deepseek-r1-distill-llama-70b")
+import os
+from langchain_groq import ChatGroq
 
+llm_model = ChatGroq(
+    model="deepseek-r1-distill-llama-70b",
+    api_key=os.getenv("GROQ_API_KEY")  # ensures Streamlit Cloud picks it up
+)
 
 #Step2: Retrieve Docs
 

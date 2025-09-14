@@ -47,29 +47,26 @@ def create_chunks(documents, source_name):
 
 # def get_embedding_model():
 #     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-import os
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_ollama import OllamaEmbeddings
+import os
 
-try:
-    from langchain_ollama import OllamaEmbeddings
-    OLLAMA_AVAILABLE = True
-except ImportError:
-    OLLAMA_AVAILABLE = False
+ollama_model_name = "nomic-embed-text"
 
 def get_embedding_model():
     """Choose embeddings depending on environment (Cloud vs Local)."""
     running_in_cloud = os.environ.get("STREAMLIT_RUNTIME", "false").lower() == "true"
 
     if running_in_cloud:
-        print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings")
+        # Force HuggingFace on Streamlit Cloud
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-    if OLLAMA_AVAILABLE:
-        print("💻 Running locally with Ollama available → Using Ollama embeddings")
-        return OllamaEmbeddings(model="nomic-embed-text")  # pick your model
-
-    print("📦 Falling back → HuggingFace embeddings")
-    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    try:
+        # Try Ollama locally if available
+        return OllamaEmbeddings(model=ollama_model_name)
+    except Exception:
+        # Fallback to HuggingFace
+        return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 
 #Step 4: Index Documents **Store embeddings in FAISS (vector store)

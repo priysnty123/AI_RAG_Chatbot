@@ -39,8 +39,45 @@ def create_chunks(documents, source_name):
 
 
 #Step 3: Setup Embeddings Model (Use DeepSeek R1 with Ollama)
+# def get_embedding_model():
+#     return OllamaEmbeddings(model=ollama_model_name)
+
+
+# from langchain_community.embeddings import HuggingFaceEmbeddings
+
+# def get_embedding_model():
+#     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+import os
+
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+try:
+    from langchain_ollama import OllamaEmbeddings
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+
+
 def get_embedding_model():
-    return OllamaEmbeddings(model=ollama_model_name)
+    """
+    Returns an embedding model depending on environment:
+    - If Ollama is available locally, use Ollama embeddings.
+    - Otherwise, default to HuggingFace embeddings (free, cloud-safe).
+    """
+    # Check if running in Streamlit Cloud (no Ollama there)
+    if "STREAMLIT_RUNTIME" in os.environ:
+        print(" Using HuggingFace embeddings (Streamlit Cloud)")
+        return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+    # If Ollama is available locally, use it
+    if OLLAMA_AVAILABLE:
+        print(" Using Ollama embeddings (local)")
+        return OllamaEmbeddings(model=ollama_model_name)  # or your `ollama_model_name`
+
+    # Final fallback: HuggingFace
+    print(" Falling back to HuggingFace embeddings")
+    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 
 #Step 4: Index Documents **Store embeddings in FAISS (vector store)

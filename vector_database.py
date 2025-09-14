@@ -47,27 +47,32 @@ def create_chunks(documents, source_name):
 
 # def get_embedding_model():
 #     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_ollama import OllamaEmbeddings
 import os
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+# Try importing Ollama locally only
+try:
+    from langchain_ollama import OllamaEmbeddings
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
 
 ollama_model_name = "nomic-embed-text"
 
 def get_embedding_model():
-    """Force HuggingFace on Streamlit Cloud, use Ollama only locally."""
+    """Force HuggingFace in Streamlit Cloud, use Ollama only locally."""
     running_in_streamlit_cloud = os.environ.get("STREAMLIT_SERVER_HEADLESS") == "1"
 
     if running_in_streamlit_cloud:
         print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings")
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-    try:
-        print("💻 Running locally → Trying Ollama embeddings")
+    if OLLAMA_AVAILABLE:
+        print("💻 Running locally → Using Ollama embeddings")
         return OllamaEmbeddings(model=ollama_model_name)
-    except Exception as e:
-        print(f"Ollama not available, falling back: {e}")
-        return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
+    print("Fallback → Using HuggingFace embeddings")
+    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 #Step 4: Index Documents **Store embeddings in FAISS (vector store)
 def build_faiss_index(uploaded_files):

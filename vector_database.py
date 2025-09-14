@@ -47,7 +47,6 @@ def create_chunks(documents, source_name):
 
 # def get_embedding_model():
 #     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
 import os
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
@@ -57,23 +56,26 @@ try:
 except ImportError:
     OLLAMA_AVAILABLE = False
 
-# Define the model name here (so it's available to the function)
 ollama_model_name = "deepseek-r1:1.5b"
 
 def get_embedding_model():
     """Choose embeddings depending on environment (Cloud vs Local)."""
-    running_in_cloud = os.environ.get("STREAMLIT_RUNTIME", "false").lower() == "true"
+    # Streamlit Cloud sets this env var
+    running_in_cloud = os.environ.get("STREAMLIT_RUNTIME") is not None
 
     if running_in_cloud:
-        # Always HuggingFace on Streamlit Cloud
+        # Always use HuggingFace on Streamlit Cloud
+        print("⚡ Using HuggingFace embeddings (Streamlit Cloud)")
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     if OLLAMA_AVAILABLE:
-        # Use Ollama locally if available
+        print("⚡ Using Ollama embeddings (Local machine)")
         return OllamaEmbeddings(model=ollama_model_name)
 
     # Fallback
+    print("⚡ Falling back to HuggingFace embeddings (Local)")
     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
 
 #Step 4: Index Documents **Store embeddings in FAISS (vector store)
 def build_faiss_index(uploaded_files):

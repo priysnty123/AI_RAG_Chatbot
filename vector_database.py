@@ -57,7 +57,7 @@ try:
 except ImportError:
     OLLAMA_AVAILABLE = False
 
-ollama_model_name = "nomic-embed-text"
+ollama_model_name = "deepseek-r1:1.5b"
 
 def get_embedding_model():
     """Force HuggingFace in Streamlit Cloud, use Ollama only locally."""

@@ -56,24 +56,19 @@ try:
 except ImportError:
     OLLAMA_AVAILABLE = False
 
-ollama_model_name = "deepseek-r1:1.5b"
-
 def get_embedding_model():
     """Choose embeddings depending on environment (Cloud vs Local)."""
-    # Streamlit Cloud sets this env var
-    running_in_cloud = os.environ.get("STREAMLIT_RUNTIME") is not None
+    running_in_cloud = os.environ.get("STREAMLIT_RUNTIME", "false").lower() == "true"
 
     if running_in_cloud:
-        # Always use HuggingFace on Streamlit Cloud
-        print("⚡ Using HuggingFace embeddings (Streamlit Cloud)")
+        print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings")
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     if OLLAMA_AVAILABLE:
-        print("⚡ Using Ollama embeddings (Local machine)")
-        return OllamaEmbeddings(model=ollama_model_name)
+        print("💻 Running locally with Ollama available → Using Ollama embeddings")
+        return OllamaEmbeddings(model="nomic-embed-text")  # pick your model
 
-    # Fallback
-    print("⚡ Falling back to HuggingFace embeddings (Local)")
+    print("📦 Falling back → HuggingFace embeddings")
     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 

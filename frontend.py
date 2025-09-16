@@ -7,6 +7,7 @@ from vector_database import upload_pdf, build_faiss_index
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
+import re 
 
 
 st.set_page_config(page_title="AI RAG Chatbot", layout="wide")
@@ -62,41 +63,56 @@ for chat in st.session_state["history"]:
     if chat["sources"]:
         st.caption("📄 Sources: " + ", ".join(chat["sources"]))
 
+#clean the text for pdf
 
-    
-#  Function to generate PDF
+import re
+
+def clean_text(text: str) -> str:
+    # Remove <think>...</think>
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    # Remove black squares
+    text = text.replace("■", "")
+    # Normalize whitespace
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
 def generate_chat_pdf(history):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    y = height - 50  # Start near top of page
+    y = height - 50
     c.setFont("Helvetica-Bold", 14)
     c.drawString(50, y, "AI Chatbot Conversation History")
-    y -= 30
-
+    y -= 40
     c.setFont("Helvetica", 11)
 
     for chat in history:
-        question = f"User: {chat['question']}"
-        answer = f"AI: {chat['answer']}"
+        question = f"User: {clean_text(chat['question'])}"
+        answer   = f"AI : {clean_text(chat['answer'])}"
 
         for line in [question, answer]:
-            wrapped = []
-            while len(line) > 100:  # wrap text to fit page
-                wrapped.append(line[:100])
-                line = line[100:]
-            wrapped.append(line)
+            # word wrapping
+            words = line.split()
+            wrapped, current = [], ""
+            for word in words:
+                if len(current) + len(word) + 1 > 90:
+                    wrapped.append(current)
+                    current = word
+                else:
+                    current += (" " if current else "") + word
+            if current:
+                wrapped.append(current)
 
             for w in wrapped:
-                if y < 50:  # create new page if space ends
+                if y < 50:
                     c.showPage()
                     y = height - 50
                     c.setFont("Helvetica", 11)
                 c.drawString(50, y, w)
                 y -= 15
 
-        y -= 20  # spacing between Q&A
+        y -= 30
 
     c.save()
     buffer.seek(0)

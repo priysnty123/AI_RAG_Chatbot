@@ -9,4 +9,4 @@ tiktoken
 reportlab
 pdfplumber
 sentence-transformers
-torch==2.2.2
+torch>=2.5.0

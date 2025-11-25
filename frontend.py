@@ -65,6 +65,7 @@ for chat in st.session_state["history"]:
 
 #clean the text for pdf
 
+
 import re
 
 def clean_text(text: str) -> str:

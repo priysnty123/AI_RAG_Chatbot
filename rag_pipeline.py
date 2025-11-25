@@ -8,8 +8,10 @@ import os
 from langchain_groq import ChatGroq
 
 llm_model = ChatGroq(
-    model="deepseek-r1-distill-llama-70b",
-    api_key=os.getenv("GROQ_API_KEY")  # ensures Streamlit Cloud picks it up
+    model_name="deepseek-r1-distill-llama-70b",
+    # api_key=os.getenv("GROQ_API_KEY")  # ensures Streamlit Cloud picks it up
+    groq_api_key=os.getenv("GROQ_API_KEY"),
+    temperature=0
 )
 
 #Step2: Retrieve Docs

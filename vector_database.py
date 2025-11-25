@@ -61,13 +61,42 @@ except ImportError:
 
 ollama_model_name = "deepseek-r1:1.5b"
 
+# def get_embedding_model():
+#     """Use HuggingFace on Streamlit Cloud (CPU only), Ollama locally if available."""
+#     running_in_streamlit_cloud = os.environ.get("STREAMLIT_SERVER_HEADLESS") == "1"
+
+#     if running_in_streamlit_cloud:
+#         print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings (CPU only)")
+#         model_kwargs = {"device": "cpu"}   # ✅ fix meta tensor error
+#         encode_kwargs = {"normalize_embeddings": True}
+#         return HuggingFaceEmbeddings(
+#             model_name="sentence-transformers/all-MiniLM-L6-v2",
+#             model_kwargs=model_kwargs,
+#             encode_kwargs=encode_kwargs,
+#         )
+
+#     if OLLAMA_AVAILABLE:
+#         print("💻 Running locally → Using Ollama embeddings")
+#         return OllamaEmbeddings(model=ollama_model_name)
+
+#     print("Fallback → Using HuggingFace embeddings (CPU only)")
+#     model_kwargs = {"device": "cpu"}
+#     encode_kwargs = {"normalize_embeddings": True}
+#     return HuggingFaceEmbeddings(
+#         model_name="sentence-transformers/all-MiniLM-L6-v2",
+#         model_kwargs=model_kwargs,
+#         encode_kwargs=encode_kwargs,
+#     )
+
 def get_embedding_model():
-    """Use HuggingFace on Streamlit Cloud (CPU only), Ollama locally if available."""
+    """Use HuggingFace on Windows or Streamlit Cloud, Ollama on Mac/Linux if installed."""
+    
     running_in_streamlit_cloud = os.environ.get("STREAMLIT_SERVER_HEADLESS") == "1"
 
-    if running_in_streamlit_cloud:
-        print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings (CPU only)")
-        model_kwargs = {"device": "cpu"}   # ✅ fix meta tensor error
+    # 🔥 FIX: Ollama cannot run on Windows → Force HuggingFace
+    if os.name == "nt":
+        print("🪟 Windows detected → Using HuggingFace embeddings (Ollama disabled)")
+        model_kwargs = {"device": "cpu"}
         encode_kwargs = {"normalize_embeddings": True}
         return HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
@@ -75,10 +104,23 @@ def get_embedding_model():
             encode_kwargs=encode_kwargs,
         )
 
+    # Streamlit Cloud → Always HuggingFace
+    if running_in_streamlit_cloud:
+        print("🌐 Running on Streamlit Cloud → Using HuggingFace embeddings (CPU only)")
+        model_kwargs = {"device": "cpu"}
+        encode_kwargs = {"normalize_embeddings": True}
+        return HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs=model_kwargs,
+            encode_kwargs=encode_kwargs,
+        )
+
+    # Local Mac/Linux → prefer Ollama if installed
     if OLLAMA_AVAILABLE:
         print("💻 Running locally → Using Ollama embeddings")
         return OllamaEmbeddings(model=ollama_model_name)
 
+    # Fallback
     print("Fallback → Using HuggingFace embeddings (CPU only)")
     model_kwargs = {"device": "cpu"}
     encode_kwargs = {"normalize_embeddings": True}
@@ -87,6 +129,7 @@ def get_embedding_model():
         model_kwargs=model_kwargs,
         encode_kwargs=encode_kwargs,
     )
+
 
 #Step 4: Index Documents **Store embeddings in FAISS (vector store)
 def build_faiss_index(uploaded_files):

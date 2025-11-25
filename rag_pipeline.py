@@ -2,13 +2,15 @@
 from langchain_groq import ChatGroq
 from vector_database import load_faiss_index
 from langchain_core.prompts import ChatPromptTemplate
+from dotenv import load_dotenv
+load_dotenv()
 
 #step 1 llm setup 
 import os
 from langchain_groq import ChatGroq
 
 llm_model = ChatGroq(
-    model_name="deepseek-r1-distill-llama-70b",
+    model_name="llama-3.3-70b-versatile",
     # api_key=os.getenv("GROQ_API_KEY")  # ensures Streamlit Cloud picks it up
     groq_api_key=os.getenv("GROQ_API_KEY"),
     temperature=0

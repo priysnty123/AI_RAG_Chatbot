@@ -10,3 +10,4 @@ reportlab
 pdfplumber
 sentence-transformers
 torch
+accelerate
